@@ -1,0 +1,5 @@
+{
+  "name": "customer-data-best-practices",
+  "description": "Enforces best practices when querying customer data — correct joins, status filters, and naming conventions.",
+  "version": "1.0.0"
+}
