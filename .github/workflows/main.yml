@@ -41,3 +41,16 @@ jobs:
         run: |
           snow sql -q "ALTER AGENT HAEBI_DEMO.CONTINUOUS_LEARNING_AGENT_V2.GIT_SKILLS_AGENT COMMIT;"
           snow sql -q "ALTER AGENT HAEBI_DEMO.CONTINUOUS_LEARNING_AGENT_V2.GIT_SKILLS_AGENT SET DEFAULT_VERSION = 'LAST';"
+
+      - name: Configure Snowflake connection
+        run: |
+          mkdir -p ~/.snowflake
+          cat > ~/.snowflake/config.toml << EOF
+          [connections.default]
+          account = "${{ secrets.SF_ACCOUNT }}"
+          user = "${{ secrets.SF_USER }}"
+          password = "${{ secrets.SF_PASSWORD }}"
+          role = "ACCOUNTADMIN"
+          warehouse = "COMPUTE_WH"
+          EOF
+          chmod 0600 ~/.snowflake/config.toml
