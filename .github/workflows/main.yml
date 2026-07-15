@@ -8,13 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      SNOWFLAKE_DEFAULT_CONNECTION_NAME: "default"
-      SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
-      SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SF_USER }}
-      SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SF_PASSWORD }}
-      SNOWFLAKE_CONNECTIONS_DEFAULT_ROLE: "ACCOUNTADMIN"
-      SNOWFLAKE_CONNECTIONS_DEFAULT_WAREHOUSE: "COMPUTE_WH"
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +20,18 @@ jobs:
 
       - name: Install SnowCLI
         run: pip install snowflake-cli
+
+      - name: Configure Snowflake connection
+        run: |
+          mkdir -p ~/.snowflake
+          cat > ~/.snowflake/config.toml << EOF
+          [connections.default]
+          account = "${{ secrets.SF_ACCOUNT }}"
+          user = "${{ secrets.SF_USER }}"
+          password = "${{ secrets.SF_PASSWORD }}"
+          role = "ACCOUNTADMIN"
+          warehouse = "COMPUTE_WH"
+          EOF
 
       - name: Fetch Git Repository in Snowflake
         run: |
