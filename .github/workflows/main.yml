@@ -8,6 +8,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      SNOWFLAKE_DEFAULT_CONNECTION_NAME: "default"
+      SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
+      SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SF_USER }}
+      SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SF_PASSWORD }}
+      SNOWFLAKE_CONNECTIONS_DEFAULT_ROLE: "ACCOUNTADMIN"
+      SNOWFLAKE_CONNECTIONS_DEFAULT_WAREHOUSE: "COMPUTE_WH"
     steps:
       - uses: actions/checkout@v4
 
@@ -22,18 +29,10 @@ jobs:
         run: pip install snowflake-cli
 
       - name: Fetch Git Repository in Snowflake
-        env:
-          SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
-          SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SF_USER }}
-          SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SF_PASSWORD }}
         run: |
           snow sql -q "ALTER GIT REPOSITORY HAEBI_DEMO.CONTINUOUS_LEARNING_AGENT_V2.AGENT_SKILLS_GIT FETCH;"
 
       - name: Commit new agent version
-        env:
-          SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
-          SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SF_USER }}
-          SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SF_PASSWORD }}
         run: |
           snow sql -q "ALTER AGENT HAEBI_DEMO.CONTINUOUS_LEARNING_AGENT_V2.GIT_SKILLS_AGENT COMMIT;"
           snow sql -q "ALTER AGENT HAEBI_DEMO.CONTINUOUS_LEARNING_AGENT_V2.GIT_SKILLS_AGENT SET DEFAULT_VERSION = 'LAST';"
