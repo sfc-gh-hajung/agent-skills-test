@@ -1,0 +1,39 @@
+name: Deploy Skills to Snowflake
+
+on:
+  push:
+    branches: [main]
+    paths: ['skills/**']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate skill files
+        run: |
+          for f in skills/*/SKILL.md; do
+            head -1 "$f" | grep -q "^---" || (echo "FAIL: $f missing frontmatter" && exit 1)
+          done
+          echo "All skill files valid."
+
+      - name: Install SnowCLI
+        run: pip install snowflake-cli
+
+      - name: Fetch Git Repository in Snowflake
+        env:
+          SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
+          SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SF_USER }}
+          SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SF_PASSWORD }}
+        run: |
+          snow sql -q "ALTER GIT REPOSITORY HAEBI_DEMO.CONTINUOUS_LEARNING_AGENT_V2.AGENT_SKILLS_GIT FETCH;"
+
+      - name: Commit new agent version
+        env:
+          SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
+          SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SF_USER }}
+          SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SF_PASSWORD }}
+        run: |
+          snow sql -q "ALTER AGENT HAEBI_DEMO.CONTINUOUS_LEARNING_AGENT_V2.GIT_SKILLS_AGENT COMMIT;"
+          snow sql -q "ALTER AGENT HAEBI_DEMO.CONTINUOUS_LEARNING_AGENT_V2.GIT_SKILLS_AGENT SET DEFAULT_VERSION = 'LAST';"
